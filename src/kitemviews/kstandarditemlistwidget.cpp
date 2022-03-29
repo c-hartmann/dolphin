@@ -24,6 +24,7 @@
 #include <QGuiApplication>
 #include <QPixmapCache>
 #include <QStyleOption>
+#include <qnamespace.h>
 
 // #define KSTANDARDITEMLISTWIDGET_DEBUG
 
@@ -1419,7 +1420,11 @@ void KStandardItemListWidget::updateDetailsLayoutTextCache()
 
     qreal firstColumnOffset = iconSize();
     if (m_supportsItemExpanding) {
-        firstColumnOffset += (m_expansionArea.width() + widgetHeight) / 2;
+        if (layoutDirection() == Qt::LeftToRight) {
+            firstColumnOffset += (m_expansionArea.left() + m_expansionArea.right() + widgetHeight) / 2;
+        } else {
+            firstColumnOffset += (m_expansionArea.width() + widgetHeight) / 2;
+        }
     } else {
         firstColumnOffset += option.padding + leadingPadding();
     }
