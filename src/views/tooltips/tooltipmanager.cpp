@@ -61,13 +61,6 @@ ToolTipManager::ToolTipManager(QWidget* parent) :
     connect(m_contentRetrievalTimer, &QTimer::timeout, this, &ToolTipManager::startContentRetrieval);
 
     Q_ASSERT(m_contentRetrievalTimer->interval() < m_showToolTipTimer->interval());
-
-    // Only start the retrieving of the content, when the mouse has been over this
-    // item for 200 milliseconds. This prevents a lot of useless preview jobs and
-    // meta data retrieval, when passing rapidly over a lot of items.
-    m_fileMetaDataWidget = new DolphinFileMetaDataWidget(parent);
-    connect(m_fileMetaDataWidget, &DolphinFileMetaDataWidget::metaDataRequestFinished, this, &ToolTipManager::slotMetaDataRequestFinished);
-    connect(m_fileMetaDataWidget, &DolphinFileMetaDataWidget::urlActivated, this, &ToolTipManager::urlActivated);
 }
 
 ToolTipManager::~ToolTipManager()
@@ -84,6 +77,15 @@ void ToolTipManager::showToolTip(const KFileItem& item, const QRectF& itemRect, 
     m_item = item;
 
     m_transientParent = transientParent;
+
+    // Only start the retrieving of the content, when the mouse has been over this
+    // item for 200 milliseconds. This prevents a lot of useless preview jobs and
+    // meta data retrieval, when passing rapidly over a lot of items.
+    if (!m_fileMetaDataWidget) {
+        m_fileMetaDataWidget.reset(new DolphinFileMetaDataWidget());
+        connect(m_fileMetaDataWidget.data(), &DolphinFileMetaDataWidget::metaDataRequestFinished, this, &ToolTipManager::slotMetaDataRequestFinished);
+        connect(m_fileMetaDataWidget.data(), &DolphinFileMetaDataWidget::urlActivated, this, &ToolTipManager::urlActivated);
+    }
 
     m_contentRetrievalTimer->start();
     m_showToolTipTimer->start();
@@ -218,7 +220,7 @@ void ToolTipManager::showToolTip()
     if (!m_tooltipWidget) {
         m_tooltipWidget.reset(new KToolTipWidget());
     }
-    m_tooltipWidget->showBelow(m_itemRect, m_fileMetaDataWidget, m_transientParent);
+    m_tooltipWidget->showBelow(m_itemRect, m_fileMetaDataWidget.data(), m_transientParent);
     m_toolTipRequested = false;
 }
 
